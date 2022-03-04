@@ -1,8 +1,11 @@
 import React, { Component, ReactNode, useState } from 'react';
 import { render } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/dom'
+import { screen, fireEvent, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event';
 import GoACheckbox, { Props as CheckboxProps } from './checkbox';
+
+const noop = () => { };
+const testId = 'test-id';
 
 describe('GoA Checkbox', () => {
   const label = 'label test';
@@ -22,6 +25,54 @@ describe('GoA Checkbox', () => {
 
     render(<StatefulParent />);
   }
+
+  it('should render', () => {
+    const props: CheckboxProps = {
+      name: "foo",
+      value: "bar",
+      text: "to display",
+      disabled: false,
+      checked:true,
+      error: false,
+      onChange: noop,
+      testId: testId,
+    }
+
+    render(<GoACheckbox {...props} />);
+
+    const checkbox = screen.getByTestId(testId);
+    expect(checkbox).toBeTruthy();
+    expect(checkbox.getAttribute('name')).toBe('foo');
+    expect(checkbox.getAttribute('value')).toBe('bar');
+    expect(checkbox.getAttribute('text')).toBe('to display');
+    expect(checkbox.getAttribute("disabled")).toBe("false");
+    expect(checkbox.getAttribute("checked")).toBe("true");
+    expect(checkbox.getAttribute("error")).toBe("false");
+    expect(checkbox.getAttribute("data-testid")).toBe(testId);
+  });
+
+  it('should handle the onChange event', async function () {
+
+    const onChange = jest.fn();
+
+    const props: CheckboxProps = {
+      name: "foo",
+      value: "bar",
+      text: "to display",
+      disabled: true,
+      checked:true,
+      error: false,
+      onChange: onChange,
+      testId: testId,
+    }
+
+    const { getByTestId } = render(<GoACheckbox {...props} />);
+    const checkbox = getByTestId(testId);
+    expect(checkbox).toBeTruthy();
+
+    fireEvent(checkbox, new CustomEvent('_change', { detail: { data: { value: "bar" } } }));
+    expect(onChange).toBeCalled();
+  });
 
   it('should render label', () => {
     renderParent({ name: 'someCheckBox' });
